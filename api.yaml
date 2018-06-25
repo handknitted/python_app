@@ -1,0 +1,18 @@
+openapi: 3.0.0
+info:
+  title: Python RESTful App
+  description: Python RESTful application
+  version: 0.1.0
+
+components:
+  schemas:
+    Hello:
+      type: object
+      properties:
+        id:
+          type: integer
+        message:
+          type: string
+        required:
+        - id
+        - message
