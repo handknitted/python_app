@@ -1,11 +1,10 @@
 FROM ubuntu:16.04
 RUN apt-get update -y && \
     apt-get install -y python-pip && \
-    pip install flask && \
+    pip install flask uwsgi && \
     rm -rf /var/lib/apt/lists/*
-ENV FLASK_APP=inv.py
 COPY . /app
 WORKDIR /app
-ENTRYPOINT ["python"]
-CMD ["-m", "flask", "run", "-h", "0.0.0.0", "-p", "8080"]
+ENTRYPOINT ["uwsgi"]
+CMD ["--http", "0.0.0.0:8080", "--master", "--module", "base.base", "--processes", "1"]
 EXPOSE 8080

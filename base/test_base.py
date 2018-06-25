@@ -5,8 +5,8 @@ import unittest
 class TestBase(unittest.TestCase):
 
     def setUp(self):
-        base.app.config['TESTING'] = True
-        self.client = base.app.test_client()
+        base.application.config['TESTING'] = True
+        self.client = base.application.test_client()
 
     def test_post_message(self):
         message_json = {

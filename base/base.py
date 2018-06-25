@@ -5,29 +5,30 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 VERSION = "0.1"
 
 stored_messages = {}
 
 
-@app.route('/')
+@application.route('/')
 def version():
     """ Root IRI returns the API version """
     return jsonify(version=VERSION)
 
 
-@app.route('/messages', methods=['GET', 'POST'])
+@application.route('/messages', methods=['GET', 'POST'])
 def messages():
     """ /messages collection allows POST of new messages and GET of all messages """
     if request.method == 'POST':
         message = request.get_json()
+        application.logger.info("Posting message %s" % message.get('message'))
         result = validate_message(message)
         if result:
             print("ERROR: " + request.url + " : " + result)
             return jsonify(error=result), 400
-        stored_messages["id"] = message
+        stored_messages[message.get("id")] = message
         response = jsonify(message)
         response.status_code = 201
         response.headers['Location'] = "/messages/" + str(message["id"])
@@ -37,7 +38,7 @@ def messages():
         return jsonify(list(stored_messages.values()))
 
 
-@app.route('/messages/<int:message_id>', methods=['GET', 'DELETE'])
+@application.route('/messages/<int:message_id>', methods=['GET', 'DELETE'])
 def message(message_id):
     """ can id can be used as a /cans path param to GET/DELETE a single can """
     if message_id not in stored_messages:
