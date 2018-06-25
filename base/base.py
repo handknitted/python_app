@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 VERSION = "0.1"
 
-messages = {}
+stored_messages = {}
 
 
 @app.route('/')
@@ -27,38 +27,42 @@ def messages():
         if result:
             print("ERROR: " + request.url + " : " + result)
             return jsonify(error=result), 400
-        messages["id"] = message
-        return jsonify(message), 201
+        stored_messages["id"] = message
+        response = jsonify(message)
+        response.status_code = 201
+        response.headers['Location'] = "/messages/" + str(message["id"])
+        response.autocorrect_location_header = False
+        return response
     else:  # GET
-        return jsonify(list(messages.values()))
+        return jsonify(list(stored_messages.values()))
 
 
-@app.route('/waste/cans/<int:message_id>', methods=['GET', 'DELETE'])
+@app.route('/messages/<int:message_id>', methods=['GET', 'DELETE'])
 def message(message_id):
     """ can id can be used as a /cans path param to GET/DELETE a single can """
-    if message_id not in messages:
+    if message_id not in stored_messages:
         return jsonify(error="message id not found"), 404
     if request.method == 'GET':
-        return jsonify(messages[message_id])
+        return jsonify(stored_messages[message_id])
     elif request.method == 'DELETE':
-        del messages[message_id]
+        del stored_messages[message_id]
         return '', 204
     else:
         return jsonify(error="bad HTTP verb, only GET and DELETE supported"), 400
 
 
-def validate_message(message):
+def validate_message(val_message):
     """ DbC checks for required message fields and settings
             returns False if message is valid
             returns a string describing the error otherwise
     """
     try:
         # Test id
-        message["id"] = int(message["id"])
-        if message["id"] < 0 or 999999999 < message["id"]:
+        val_message["id"] = int(val_message["id"])
+        if val_message["id"] < 0 or 999999999 < val_message["id"]:
             raise ValueError("message.id out of range [0..999999999]")
-        if len(message.get("message")) < 1:
-            raise ValueError("message.message has no value")
+        if len(val_message.get("message")) < 1:
+            raise ValueError("message has no value")
     except Exception as ex:
         return str(ex)
     return ""  # no errors
